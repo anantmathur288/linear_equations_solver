@@ -51,6 +51,7 @@ class MainWindow(QMainWindow):
 
         #Central Widget definition
         central_widget = QWidget(self)
+        central_widget.setStyleSheet("background-color: #F5F5DC;")
         self.setCentralWidget(central_widget)
 
         #Title
@@ -64,11 +65,13 @@ class MainWindow(QMainWindow):
         #Inputs for Equation and Variable Nos.
         self.h_in_layout.addWidget(self.input_n)
         self.input_n.setPlaceholderText("Enter the number of variables")
+        self.input_n.setStyleSheet("background-color: #FFFFFF;")
         self.input_n.setAlignment(Qt.AlignHCenter)
         self.input_n.show()
 
         self.h_in_layout.addWidget(self.input_m)
         self.input_m.setPlaceholderText("Enter the number of equations")
+        self.input_m.setStyleSheet("background-color: #FFFFFF;")
         self.input_m.setAlignment(Qt.AlignHCenter)
         self.input_m.show()
 
@@ -78,6 +81,9 @@ class MainWindow(QMainWindow):
         self.button_layout.addWidget(self.submit_button)
         self.button_layout.addWidget(self.coeff_submit_button)
         self.button_layout.addWidget(self.reset_button)
+        self.submit_button.setStyleSheet("background-color: #FFFFFF;")
+        self.coeff_submit_button.setStyleSheet("background-color: #FFFFFF;")
+        self.reset_button.setStyleSheet("background-color: #FFFFFF;")
         self.button_layout.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
         self.submit_button.show()
         self.coeff_submit_button.hide()
@@ -123,11 +129,13 @@ class MainWindow(QMainWindow):
             for col in range(self.n_vars):
                 coeff_box = QLineEdit(self)
                 coeff_box.setPlaceholderText(f"a{row*self.n_vars + col + 1}")
+                coeff_box.setStyleSheet("background-color: #FFFFFF;")
                 self.coeff_layout.addWidget(coeff_box, row, col)
                 row_boxes.append(coeff_box)
 
             ans_box = QLineEdit(self)
             ans_box.setPlaceholderText(f"b{row + 1}")
+            ans_box.setStyleSheet("background-color: #FFFFFF;")
             self.coeff_layout.addWidget(ans_box, row, self.n_vars + 1)
 
             self.coeff_boxes.append(row_boxes)
@@ -162,11 +170,27 @@ class MainWindow(QMainWindow):
 
         if cse:
             self.error_label = QLabel(f"No solution exists for this system")
+            self.error_label.setFont(QFont("Arial", 20))
+            self.error_label.setStyleSheet("color: red;"
+                                           "font-weight: bold;")
+            self.error_label.setAlignment(Qt.AlignCenter)
             self.general_v_layout.addWidget(self.error_label)
         else:
             xp = QLabel(f"Particular solution xp = {self.x[0]}")
             xn = QLabel(f"Nullspace basis is xn = {self.x[1]}")
             x = QLabel(f"Complete solution is x = {self.x[0]} + c{self.x[1]}")
+            xp.setFont(QFont("Arial", 20))
+            xp.setStyleSheet("color: black;"
+                             "font-weight: bold;")
+            xn.setFont(QFont("Arial", 20))
+            xn.setStyleSheet("color: black;"
+                             "font-weight: bold;")
+            x.setFont(QFont("Arial", 20))
+            x.setStyleSheet("color: black;"
+                            "font-weight: bold;")
+            xp.setAlignment(Qt.AlignCenter)
+            xn.setAlignment(Qt.AlignCenter)
+            x.setAlignment(Qt.AlignCenter)
             self.general_v_layout.addWidget(xp)
             self.general_v_layout.addWidget(xn)
             self.general_v_layout.addWidget(x)
