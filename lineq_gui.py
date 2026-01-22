@@ -1,7 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout, QLineEdit, QWidget, QPushButton
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout, QLineEdit, QWidget, QPushButton
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPoint
 from linear_equations_solver import LinearEquationSolver as LES
 from linear_equations_solver import ColumnSpaceError
 
@@ -15,8 +15,17 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Linear Equations Solver")
         self.setGeometry(int((1920 - width)/2), int((1080 - height)/2), int(width), int(height))
 
-        self.general_v_layout = QVBoxLayout()
+        self.header = QFrame()
+        self.header.setFixedHeight(40)
+        self.header.setStyleSheet("background-color: #2b2b2b;")
+
         self.v_main_layout = QVBoxLayout()
+        self.general_v_layout = QVBoxLayout()
+
+        self.header_h_layout = QHBoxLayout(self.header)
+        self.header_h_layout.setContentsMargins(10, 0, 10, 0)
+        self.v_main_layout.addWidget(self.header)
+
         self.v_in_layout = QVBoxLayout()
         self.button_layout = QVBoxLayout()
         self.h_in_layout = QHBoxLayout()
@@ -28,6 +37,9 @@ class MainWindow(QMainWindow):
         self.coeff_submit_button = QPushButton(self, text = "Solve")
         self.reset_button = QPushButton(self, text = "Reset")
         self.name_label = QLabel("Linear Equations Solver", self)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setStyleSheet("""QMainWindow { background-color: #F5F5DC;
+                                        border: 8px solid black;}""")
 
         self.coeff_boxes = None
         self.ans_boxes = None
@@ -51,27 +63,30 @@ class MainWindow(QMainWindow):
 
         #Central Widget definition
         central_widget = QWidget(self)
-        central_widget.setStyleSheet("background-color: #F5F5DC;")
         self.setCentralWidget(central_widget)
 
         #Title
-        self.general_v_layout.addWidget(self.name_label)
-        self.name_label.setFont(QFont("Arial", 30))
-        self.name_label.setStyleSheet("color: blue;"
+        self.name_label.setFont(QFont("Arial", 14))
+        self.name_label.setStyleSheet("color: #FFFFFF;"
                                       "font-weight: bold;"
                                       "text-decoration: underline;")
-        self.name_label.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        self.name_label.setAlignment(Qt.AlignCenter)
+        self.header_h_layout.addWidget(self.name_label)
 
         #Inputs for Equation and Variable Nos.
         self.h_in_layout.addWidget(self.input_n)
         self.input_n.setPlaceholderText("Enter the number of variables")
-        self.input_n.setStyleSheet("background-color: #FFFFFF;")
+        self.input_n.setStyleSheet("background-color: #FFFFFF;"
+                                   "border: 2px solid black;")
+        self.input_n.setFixedSize(200, 150)
         self.input_n.setAlignment(Qt.AlignHCenter)
         self.input_n.show()
 
         self.h_in_layout.addWidget(self.input_m)
         self.input_m.setPlaceholderText("Enter the number of equations")
-        self.input_m.setStyleSheet("background-color: #FFFFFF;")
+        self.input_m.setStyleSheet("background-color: #FFFFFF;"
+                                   "border: 2px solid black;")
+        self.input_m.setFixedSize(200, 150)
         self.input_m.setAlignment(Qt.AlignHCenter)
         self.input_m.show()
 
@@ -129,7 +144,8 @@ class MainWindow(QMainWindow):
             for col in range(self.n_vars):
                 coeff_box = QLineEdit(self)
                 coeff_box.setPlaceholderText(f"a{row*self.n_vars + col + 1}")
-                coeff_box.setStyleSheet("background-color: #FFFFFF;")
+                coeff_box.setStyleSheet("background-color: #FFFFFF;"
+                                        "border-color: black;")
                 self.coeff_layout.addWidget(coeff_box, row, col)
                 row_boxes.append(coeff_box)
 
