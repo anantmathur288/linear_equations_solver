@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout, QLineEdit, QWidget, QPushButton
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtCore import Qt
 from linear_equations_solver import LinearEquationSolver as LES
 from linear_equations_solver import ColumnSpaceError
 
