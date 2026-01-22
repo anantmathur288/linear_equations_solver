@@ -11,40 +11,48 @@ height = 500
 RESIZE_MARGIN = 8
 
 class Header(QFrame):
+
+    #Header drag only logic
+
     def mousePressEvent(self, event):
+
+        #Set left mouse click event
         if event.button() == Qt.LeftButton:
-            self._drag_pos = event.globalPos()
+            self._drag_pos = event.globalPos()                                      #Set drag position
             event.accept()
 
     def mouseMoveEvent(self, event):
+
+        #Set left mouse drag event
         if event.buttons() == Qt.LeftButton:
             self.window().move(
-                self.window().pos() + event.globalPos() - self._drag_pos
-            )
+                self.window().pos() + event.globalPos() - self._drag_pos            #Move window according to mouse on
+            )                                                                       #header position
             self._drag_pos = event.globalPos()
             event.accept()
 
 class HintLineEdit(QLineEdit):
+
+    #Custom Line Edit with better hint
+
     def __init__(self, hint, parent=None):
         super().__init__(parent)
 
         self.setAlignment(Qt.AlignCenter)
 
-        # DO NOT change QLineEdit style
-        self._hint_label = QLabel(hint, self)
+        self._hint_label = QLabel(hint, self)                                       #Hint Label Style Sheet
         self._hint_label.setStyleSheet("color: #888888;"
                                        "border: none;"
                                        "background: transparent;")
-        self._hint_label.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._hint_label.setAttribute(Qt.WA_TransparentForMouseEvents)              #Hint is transparent for mouse events
 
-        self.textChanged.connect(self._update_hint)
+        self.textChanged.connect(self._update_hint)                                 #Connect and update when text entered
         self._update_hint()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
 
-        # ---- PERFECT CENTERING ----
-        hint_width = self._hint_label.sizeHint().width()
+        hint_width = self._hint_label.sizeHint().width()                            #Centering of cursor and hint label
         hint_height = self._hint_label.sizeHint().height()
 
         x = (self.width() - hint_width) // 2
@@ -53,7 +61,8 @@ class HintLineEdit(QLineEdit):
         self._hint_label.move(x, y)
 
     def _update_hint(self):
-        self._hint_label.setVisible(not self.text())
+
+        self._hint_label.setVisible(not self.text())                                #Set the hint visible when there is no text
 
 
 
@@ -61,6 +70,9 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        #Main Window Definition
+
+        #Window Definition and Style Sheet
         self.setWindowTitle("Linear Equations Solver")
         self.setGeometry(int((1920 - width)/2), int((1080 - height)/2), int(width), int(height))
         self.setWindowFlags(Qt.FramelessWindowHint)
@@ -68,47 +80,49 @@ class MainWindow(QMainWindow):
                                         border: 8px solid black;}""")
         self.setMinimumSize(400, 300)
 
+        #Header Definition and Style Sheet
         self.header = Header(self)
         self.header.setFixedHeight(40)
         self.header.setStyleSheet("background-color: #2b2b2b;")
+
+        #Header Buttons
         self.min_btn = QPushButton("–")
         self.close_btn = QPushButton("✕")
 
-        self.v_main_layout = QVBoxLayout()
-        self.general_v_layout = QVBoxLayout()
-
-        self.header_h_layout = QHBoxLayout(self.header)
+        #Required Layouts
+        self.v_main_layout = QVBoxLayout()                                          #Main Layout
+        self.general_v_layout = QVBoxLayout()                                       #General Widget Layout
+        self.v_in_layout = QVBoxLayout()                                            #Vertical Input Line Edit Layout
+        self.button_layout = QVBoxLayout()                                          #Button Layouts
+        self.h_in_layout = QHBoxLayout()                                            #Horizontal Input Line Edit Layout
+        self.coeff_layout = QGridLayout()                                           #Coefficient Grid Layout
+        self.header_h_layout = QHBoxLayout(self.header)                             #Header Layout
         self.header_h_layout.setContentsMargins(10, 0, 5, 0)
         self.header_h_layout.setSpacing(5)
-        self.v_main_layout.addWidget(self.header)
 
-        self.v_in_layout = QVBoxLayout()
-        self.button_layout = QVBoxLayout()
-        self.h_in_layout = QHBoxLayout()
-        self.coeff_layout = QGridLayout()
-
+        #Input Line Edit Definitions
         self.input_m = HintLineEdit("Enter number of variables", self)
         self.input_n = HintLineEdit("Enter number of equations", self)
+
+        #Button Definitions
         self.submit_button = QPushButton(self, text = "Submit")
         self.coeff_submit_button = QPushButton(self, text = "Solve")
         self.reset_button = QPushButton(self, text = "Reset")
+
+        #Title Label Definition
         self.name_label = QLabel("Linear Equations Solver", self)
 
-        self._drag_pos = None
-
-        self.coeff_boxes = None
-        self.ans_boxes = None
+        #Variable Definitions
         self.n_eqs = None
         self.n_vars = None
-
+        self.coeff_boxes = None
+        self.ans_boxes = None
         self.A_matrix = None
         self.B_matrix = None
         self.x = None
-        self.particular_soln = None
-        self.nullspace_basis = None
-        self.complete_soln = None
-        self.error_label = None
 
+        #Mouse Movement Variable Definitions
+        self._drag_pos = None
         self._mouse_pos = None
         self._resize_dir = None
         self._geom = None
@@ -118,6 +132,8 @@ class MainWindow(QMainWindow):
         self.initUI()
 
     def initUI(self):
+
+        #UI for Main Window
 
         #Central widget reset
         if self.centralWidget():
@@ -139,35 +155,27 @@ class MainWindow(QMainWindow):
         self.min_btn.setFixedSize(30, 28)
         self.min_btn.setFocusPolicy(Qt.NoFocus)
         self.min_btn.clicked.connect(self.showMinimized)
-        self.min_btn.setStyleSheet("""
-        QPushButton {
-            color: white;
-            background: transparent;
-            border: none;
-            font-size: 16px;
-        }
-        QPushButton:hover {
-            background: #444;
-        }
-        """)
+        self.min_btn.setStyleSheet(""" QPushButton { color: white;
+                                                     background: transparent;
+                                                     border: none;
+                                                     font-size: 16px;
+                                                    }
+                                       QPushButton:hover { background: #444;
+                                                         } """)
         self.close_btn.setFixedSize(30, 28)
         self.close_btn.setFocusPolicy(Qt.NoFocus)
         self.close_btn.clicked.connect(self.close)
-
-        self.close_btn.setStyleSheet("""
-        QPushButton {
-            color: white;
-            background: transparent;
-            border: none;
-            font-size: 14px;
-        }
-        QPushButton:hover {
-            background: #d32f2f;
-        }
-        """)
+        self.close_btn.setStyleSheet(""" QPushButton { color: white;
+                                                       background: transparent;
+                                                       border: none;
+                                                       font-size: 14px;
+                                                      }
+                                         QPushButton:hover { background: #d32f2f;
+                                                            } """)
         self.header_h_layout.addWidget(self.close_btn)
+        self.v_main_layout.addWidget(self.header)
 
-        #Inputs for Equation and Variable Nos.
+        #Input Line Edit Style Sheets and Visibility
         self.h_in_layout.addWidget(self.input_n)
         self.input_n.setStyleSheet("background-color: #FFFFFF; border: 2px solid black;")
         self.input_n.show()
@@ -178,7 +186,7 @@ class MainWindow(QMainWindow):
 
         self.h_in_layout.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
 
-        #Buttons
+        #Button Style Sheets and Visibility
         self.button_layout.addWidget(self.submit_button)
         self.button_layout.addWidget(self.coeff_submit_button)
         self.button_layout.addWidget(self.reset_button)
@@ -190,22 +198,19 @@ class MainWindow(QMainWindow):
         self.coeff_submit_button.hide()
         self.reset_button.hide()
 
-        #Add to main layout
+        #Adding Widgets to Main Layout
         for i in [self.general_v_layout, self.v_in_layout, self.h_in_layout, self.coeff_layout, self.button_layout]:
             self.v_main_layout.addLayout(i)
 
-        #Set central widget layout
+        #Set Central Widget Layout
         central_widget.setLayout(self.v_main_layout)
 
-        #Connect button signals
+        #Connect Button Signals
         self.submit_button.clicked.connect(self.lineqUI)
         self.coeff_submit_button.clicked.connect(self.solver)
         self.reset_button.clicked.connect(self.resetUI)
 
-        #Reset state
-        self.coeff_boxes = []
-        self.ans_boxes = []
-
+        #Mouse Position Tracking
         self.centralWidget().setMouseTracking(True)
         self.header.setMouseTracking(True)
 
@@ -213,15 +218,17 @@ class MainWindow(QMainWindow):
         rect = self.rect()
         x, y = pos.x(), pos.y()
 
-        # Header: block resize except top edge margin
+        # Header block resize except top edge margin
         if RESIZE_MARGIN < y <= self.header.height():
             return None
 
+        #Set directions
         left = x < RESIZE_MARGIN
         right = x > rect.width() - RESIZE_MARGIN
         top = y < RESIZE_MARGIN
         bottom = y > rect.height() - RESIZE_MARGIN
 
+        #Return value based on position
         if left and top: return "top_left"
         if right and top: return "top_right"
         if left and bottom: return "bottom_left"
@@ -230,19 +237,23 @@ class MainWindow(QMainWindow):
         if right: return "right"
         if top: return "top"
         if bottom: return "bottom"
+
         return None
 
-
     def mousePressEvent(self, event):
+
+        #Set left mouse click event
         if event.button() == Qt.LeftButton:
-            self._resize_dir = self._get_resize_direction(event.pos())
-            self._mouse_pos = event.globalPos()
-            self._geom = self.geometry()
+            self._resize_dir = self._get_resize_direction(event.pos())              #Set resizing direction
+            self._mouse_pos = event.globalPos()                                     #Find mouse position
+            self._geom = self.geometry()                                            #Set geometry
             event.accept()
 
     def mouseMoveEvent(self, event):
 
-        if not self._resize_dir:
+        #Set left mouse drag event
+
+        if not self._resize_dir:                                                    #Cursor Style Change based on Position
             direction = self._get_resize_direction(event.pos())
             cursors = {
                 "left": Qt.SizeHorCursor,
@@ -256,7 +267,7 @@ class MainWindow(QMainWindow):
             }
             self.setCursor(cursors.get(direction, Qt.ArrowCursor))
 
-        if self._resize_dir:
+        if self._resize_dir:                                                        #Resizing window
             delta = event.globalPos() - self._mouse_pos
             g = self.geometry()
 
@@ -275,27 +286,33 @@ class MainWindow(QMainWindow):
 
 
     def mouseReleaseEvent(self, event):
-        self._resize_dir = None
+
+        #Set left mouse release event
+
+        self._resize_dir = None                                                     #Reset resize direction
 
     def lineqUI(self):
-        self.submit_button.hide()
+
+        #UI for Coefficient Input Window
+
+        self.submit_button.hide()                                                   #Adjust widget visibility
         self.input_n.hide()
         self.input_m.hide()
         self.coeff_submit_button.show()
 
-        self.n_vars = self.input_n.text()
+        self.n_vars = self.input_n.text()                                           #Extract text from line edits
         self.n_eqs = self.input_m.text()
 
-        if not self.n_vars.isdigit() or not self.n_eqs.isdigit():
+        if not self.n_vars.isdigit() or not self.n_eqs.isdigit():                   #Check if text is valid
             raise ValueError("Number of variables and equations must be numerical")
 
-        self.n_vars = int(self.n_vars)
+        self.n_vars = int(self.n_vars)                                              #Set text to int datatype
         self.n_eqs = int(self.n_eqs)
 
-        self.coeff_boxes = []
+        self.coeff_boxes = []                                                       #Initialize coefficient widget storage
         self.ans_boxes = []
 
-        for row in range(self.n_eqs):
+        for row in range(self.n_eqs):                                               #Coefficient widget logic
             row_boxes = []
 
             for col in range(self.n_vars):
@@ -305,7 +322,7 @@ class MainWindow(QMainWindow):
                 self.coeff_layout.addWidget(coeff_box, row, col)
                 row_boxes.append(coeff_box)
 
-            ans_box = HintLineEdit(f"b{row + 1}", self)
+            ans_box = HintLineEdit(f"b{row + 1}", self)                        #RHS widget logic
             ans_box.setStyleSheet("background-color: #FFFFFF;")
             self.coeff_layout.addWidget(ans_box, row, self.n_vars + 1)
 
@@ -314,7 +331,12 @@ class MainWindow(QMainWindow):
 
     def solver(self):
 
+        #Linear Equations Solver Unit
+
         def safe_float(box):
+
+            #Converts to float and checks for empty entry
+
             text = box.text().strip()
             if not text:
                 return 0.0
@@ -322,31 +344,34 @@ class MainWindow(QMainWindow):
 
         A = []
         for row in self.coeff_boxes:
-            A.append([safe_float(coeff_box) for coeff_box in row])
+            A.append([safe_float(coeff_box) for coeff_box in row])                  #Form Coefficient Matrix
 
-        B = [[safe_float(ans_box)] for ans_box in self.ans_boxes]
+        B = [[safe_float(ans_box)] for ans_box in self.ans_boxes]                   #Form RHS Matrix
 
         try:
-            obj = LES(A, B)
+            obj = LES(A, B)                                                         #Solve using LES
             self.x = obj.solve()
             self.solutionUI()
-        except ColumnSpaceError:
+        except ColumnSpaceError:                                                    #Set flag for no solution
             self.solutionUI(cse = True)
 
 
     def solutionUI(self, cse = False):
-        self.clear_layout(self.coeff_layout)
-        self.coeff_submit_button.hide()
-        self.reset_button.show()
 
-        if cse:
-            self.error_label = QLabel(f"No solution exists for this system")
-            self.error_label.setFont(QFont("Arial", 20))
-            self.error_label.setStyleSheet("color: red;"
+        #UI for Solution Display
+
+        self.clear_layout(self.coeff_layout)                                        #Clear screen for display
+        self.coeff_submit_button.hide()
+        self.reset_button.show()                                                    #Show reset button
+
+        if cse:                                                                     #Shows no solution label
+            error_label = QLabel(f"No solution exists for this system")
+            error_label.setFont(QFont("Arial", 20))
+            error_label.setStyleSheet("color: red;"
                                            "font-weight: bold;")
-            self.error_label.setAlignment(Qt.AlignCenter)
-            self.general_v_layout.addWidget(self.error_label)
-        else:
+            error_label.setAlignment(Qt.AlignCenter)
+            self.general_v_layout.addWidget(error_label)
+        else:                                                                       #Displays solutions
             xp = QLabel(f"Particular solution xp = {self.x[0]}")
             xn = QLabel(f"Nullspace basis is xn = {self.x[1]}")
             x = QLabel(f"Complete solution is x = {self.x[0]} + c{self.x[1]}")
@@ -367,6 +392,9 @@ class MainWindow(QMainWindow):
             self.general_v_layout.addWidget(x)
 
     def clear_layout(self, layout):
+
+        #Logic for Clearing Layouts
+
         while layout.count():
             item = layout.takeAt(0)
             widget = item.widget()
@@ -378,23 +406,22 @@ class MainWindow(QMainWindow):
                     self.clear_layout(sub_layout)
 
     def resetUI(self):
-        # ----- Clear dynamic layouts -----
-        self.clear_layout(self.coeff_layout)
+
+        #Reset the UI
+
+        self.clear_layout(self.coeff_layout)                                        #Clear dynamic layouts
         self.clear_layout(self.general_v_layout)
 
-        # ----- Reset inputs -----
-        self.input_n.clear()
+        self.input_n.clear()                                                        #Reset inputs
         self.input_m.clear()
         self.input_n.show()
         self.input_m.show()
 
-        # ----- Reset visibility -----
-        self.submit_button.show()
+        self.submit_button.show()                                                   #Reset visibility
         self.coeff_submit_button.hide()
         self.reset_button.hide()
 
-        # ----- Reset internal state -----
-        self.coeff_boxes = []
+        self.coeff_boxes = []                                                       #Reset internal state
         self.ans_boxes = []
         self.n_eqs = None
         self.n_vars = None
