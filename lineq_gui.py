@@ -109,6 +109,12 @@ class MainWindow(QMainWindow):
         self.complete_soln = None
         self.error_label = None
 
+        self._mouse_pos = None
+        self._resize_dir = None
+        self._geom = None
+
+        self.setMouseTracking(True)
+
         self.initUI()
 
     def initUI(self):
@@ -199,6 +205,77 @@ class MainWindow(QMainWindow):
         #Reset state
         self.coeff_boxes = []
         self.ans_boxes = []
+
+        self.centralWidget().setMouseTracking(True)
+        self.header.setMouseTracking(True)
+
+    def _get_resize_direction(self, pos):
+        rect = self.rect()
+        x, y = pos.x(), pos.y()
+
+        # Header: block resize except top edge margin
+        if RESIZE_MARGIN < y <= self.header.height():
+            return None
+
+        left = x < RESIZE_MARGIN
+        right = x > rect.width() - RESIZE_MARGIN
+        top = y < RESIZE_MARGIN
+        bottom = y > rect.height() - RESIZE_MARGIN
+
+        if left and top: return "top_left"
+        if right and top: return "top_right"
+        if left and bottom: return "bottom_left"
+        if right and bottom: return "bottom_right"
+        if left: return "left"
+        if right: return "right"
+        if top: return "top"
+        if bottom: return "bottom"
+        return None
+
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._resize_dir = self._get_resize_direction(event.pos())
+            self._mouse_pos = event.globalPos()
+            self._geom = self.geometry()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+
+        if not self._resize_dir:
+            direction = self._get_resize_direction(event.pos())
+            cursors = {
+                "left": Qt.SizeHorCursor,
+                "right": Qt.SizeHorCursor,
+                "top": Qt.SizeVerCursor,
+                "bottom": Qt.SizeVerCursor,
+                "top_left": Qt.SizeFDiagCursor,
+                "bottom_right": Qt.SizeFDiagCursor,
+                "top_right": Qt.SizeBDiagCursor,
+                "bottom_left": Qt.SizeBDiagCursor,
+            }
+            self.setCursor(cursors.get(direction, Qt.ArrowCursor))
+
+        if self._resize_dir:
+            delta = event.globalPos() - self._mouse_pos
+            g = self.geometry()
+
+            if "right" in self._resize_dir:
+                g.setWidth(max(self.minimumWidth(), g.width() + delta.x()))
+            if "bottom" in self._resize_dir:
+                g.setHeight(max(self.minimumHeight(), g.height() + delta.y()))
+            if "left" in self._resize_dir:
+                g.setLeft(g.left() + delta.x())
+            if "top" in self._resize_dir:
+                g.setTop(g.top() + delta.y())
+
+            self.setGeometry(g)
+            self._mouse_pos = event.globalPos()
+            return
+
+
+    def mouseReleaseEvent(self, event):
+        self._resize_dir = None
 
     def lineqUI(self):
         self.submit_button.hide()
