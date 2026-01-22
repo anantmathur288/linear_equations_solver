@@ -378,20 +378,29 @@ class MainWindow(QMainWindow):
                     self.clear_layout(sub_layout)
 
     def resetUI(self):
-        #Button disconnection
-        self.submit_button.clicked.disconnect(self.lineqUI)
-        self.coeff_submit_button.clicked.disconnect(self.solver)
-        self.reset_button.clicked.disconnect(self.resetUI)
+        # ----- Clear dynamic layouts -----
+        self.clear_layout(self.coeff_layout)
+        self.clear_layout(self.general_v_layout)
 
-        # Layout reset
-        self.general_v_layout = QVBoxLayout()
-        self.v_main_layout = QVBoxLayout()
-        self.v_in_layout = QVBoxLayout()
-        self.button_layout = QVBoxLayout()
-        self.h_in_layout = QHBoxLayout()
-        self.coeff_layout = QGridLayout()
+        # ----- Reset inputs -----
+        self.input_n.clear()
+        self.input_m.clear()
+        self.input_n.show()
+        self.input_m.show()
 
-        self.initUI()
+        # ----- Reset visibility -----
+        self.submit_button.show()
+        self.coeff_submit_button.hide()
+        self.reset_button.hide()
+
+        # ----- Reset internal state -----
+        self.coeff_boxes = []
+        self.ans_boxes = []
+        self.n_eqs = None
+        self.n_vars = None
+
+        self.input_n.setFocus()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
