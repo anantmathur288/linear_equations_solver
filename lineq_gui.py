@@ -8,6 +8,55 @@ from linear_equations_solver import ColumnSpaceError
 width = 700
 height = 500
 
+RESIZE_MARGIN = 8
+
+class Header(QFrame):
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._drag_pos = event.globalPos()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            self.window().move(
+                self.window().pos() + event.globalPos() - self._drag_pos
+            )
+            self._drag_pos = event.globalPos()
+            event.accept()
+
+class HintLineEdit(QLineEdit):
+    def __init__(self, hint, parent=None):
+        super().__init__(parent)
+
+        self.setAlignment(Qt.AlignCenter)
+
+        # DO NOT change QLineEdit style
+        self._hint_label = QLabel(hint, self)
+        self._hint_label.setStyleSheet("color: #888888;"
+                                       "border: none;"
+                                       "background: transparent;")
+        self._hint_label.setAttribute(Qt.WA_TransparentForMouseEvents)
+
+        self.textChanged.connect(self._update_hint)
+        self._update_hint()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+
+        # ---- PERFECT CENTERING ----
+        hint_width = self._hint_label.sizeHint().width()
+        hint_height = self._hint_label.sizeHint().height()
+
+        x = (self.width() - hint_width) // 2
+        y = (self.height() - hint_height) // 2
+
+        self._hint_label.move(x, y)
+
+    def _update_hint(self):
+        self._hint_label.setVisible(not self.text())
+
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
