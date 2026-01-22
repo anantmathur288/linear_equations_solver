@@ -63,16 +63,23 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Linear Equations Solver")
         self.setGeometry(int((1920 - width)/2), int((1080 - height)/2), int(width), int(height))
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setStyleSheet("""QMainWindow { background-color: #F5F5DC;
+                                        border: 8px solid black;}""")
+        self.setMinimumSize(400, 300)
 
-        self.header = QFrame()
+        self.header = Header(self)
         self.header.setFixedHeight(40)
         self.header.setStyleSheet("background-color: #2b2b2b;")
+        self.min_btn = QPushButton("–")
+        self.close_btn = QPushButton("✕")
 
         self.v_main_layout = QVBoxLayout()
         self.general_v_layout = QVBoxLayout()
 
         self.header_h_layout = QHBoxLayout(self.header)
-        self.header_h_layout.setContentsMargins(10, 0, 10, 0)
+        self.header_h_layout.setContentsMargins(10, 0, 5, 0)
+        self.header_h_layout.setSpacing(5)
         self.v_main_layout.addWidget(self.header)
 
         self.v_in_layout = QVBoxLayout()
@@ -80,20 +87,20 @@ class MainWindow(QMainWindow):
         self.h_in_layout = QHBoxLayout()
         self.coeff_layout = QGridLayout()
 
-        self.input_m = QLineEdit(self)
-        self.input_n = QLineEdit(self)
+        self.input_m = HintLineEdit("Enter number of variables", self)
+        self.input_n = HintLineEdit("Enter number of equations", self)
         self.submit_button = QPushButton(self, text = "Submit")
         self.coeff_submit_button = QPushButton(self, text = "Solve")
         self.reset_button = QPushButton(self, text = "Reset")
         self.name_label = QLabel("Linear Equations Solver", self)
-        self.setWindowFlags(Qt.FramelessWindowHint)
-        self.setStyleSheet("""QMainWindow { background-color: #F5F5DC;
-                                        border: 8px solid black;}""")
+
+        self._drag_pos = None
 
         self.coeff_boxes = None
         self.ans_boxes = None
         self.n_eqs = None
         self.n_vars = None
+
         self.A_matrix = None
         self.B_matrix = None
         self.x = None
@@ -114,29 +121,53 @@ class MainWindow(QMainWindow):
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
 
-        #Title
+        #Title Bar
         self.name_label.setFont(QFont("Arial", 14))
         self.name_label.setStyleSheet("color: #FFFFFF;"
                                       "font-weight: bold;"
                                       "text-decoration: underline;")
         self.name_label.setAlignment(Qt.AlignCenter)
         self.header_h_layout.addWidget(self.name_label)
+        self.header_h_layout.addStretch()
+        self.header_h_layout.addWidget(self.min_btn)
+        self.min_btn.setFixedSize(30, 28)
+        self.min_btn.setFocusPolicy(Qt.NoFocus)
+        self.min_btn.clicked.connect(self.showMinimized)
+        self.min_btn.setStyleSheet("""
+        QPushButton {
+            color: white;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+        }
+        QPushButton:hover {
+            background: #444;
+        }
+        """)
+        self.close_btn.setFixedSize(30, 28)
+        self.close_btn.setFocusPolicy(Qt.NoFocus)
+        self.close_btn.clicked.connect(self.close)
+
+        self.close_btn.setStyleSheet("""
+        QPushButton {
+            color: white;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+        }
+        QPushButton:hover {
+            background: #d32f2f;
+        }
+        """)
+        self.header_h_layout.addWidget(self.close_btn)
 
         #Inputs for Equation and Variable Nos.
         self.h_in_layout.addWidget(self.input_n)
-        self.input_n.setPlaceholderText("Enter the number of variables")
-        self.input_n.setStyleSheet("background-color: #FFFFFF;"
-                                   "border: 2px solid black;")
-        self.input_n.setFixedSize(200, 150)
-        self.input_n.setAlignment(Qt.AlignHCenter)
+        self.input_n.setStyleSheet("background-color: #FFFFFF; border: 2px solid black;")
         self.input_n.show()
 
         self.h_in_layout.addWidget(self.input_m)
-        self.input_m.setPlaceholderText("Enter the number of equations")
-        self.input_m.setStyleSheet("background-color: #FFFFFF;"
-                                   "border: 2px solid black;")
-        self.input_m.setFixedSize(200, 150)
-        self.input_m.setAlignment(Qt.AlignHCenter)
+        self.input_m.setStyleSheet("background-color: #FFFFFF; border: 2px solid black;")
         self.input_m.show()
 
         self.h_in_layout.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
@@ -191,15 +222,13 @@ class MainWindow(QMainWindow):
             row_boxes = []
 
             for col in range(self.n_vars):
-                coeff_box = QLineEdit(self)
-                coeff_box.setPlaceholderText(f"a{row*self.n_vars + col + 1}")
+                coeff_box = HintLineEdit(f"a{row*self.n_vars + col + 1}", self)
                 coeff_box.setStyleSheet("background-color: #FFFFFF;"
                                         "border-color: black;")
                 self.coeff_layout.addWidget(coeff_box, row, col)
                 row_boxes.append(coeff_box)
 
-            ans_box = QLineEdit(self)
-            ans_box.setPlaceholderText(f"b{row + 1}")
+            ans_box = HintLineEdit(f"b{row + 1}", self)
             ans_box.setStyleSheet("background-color: #FFFFFF;")
             self.coeff_layout.addWidget(ans_box, row, self.n_vars + 1)
 
