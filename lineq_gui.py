@@ -1,5 +1,6 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout, QLineEdit, QWidget, QPushButton
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QFrame, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout, QLineEdit,
+                             QWidget, QPushButton)
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 from linear_equations_solver import LinearEquationSolver as LES
@@ -100,6 +101,8 @@ class MainWindow(QMainWindow):
         self.header_h_layout.setContentsMargins(10, 0, 5, 0)
         self.header_h_layout.setSpacing(5)
 
+        self.intro_text = QLabel
+
         #Input Line Edit Definitions
         self.input_m = HintLineEdit("Enter number of variables", self)
         self.input_n = HintLineEdit("Enter number of equations", self)
@@ -111,6 +114,16 @@ class MainWindow(QMainWindow):
 
         #Title Label Definition
         self.name_label = QLabel("Linear Equations Solver", self)
+
+        #Intro Text Label Definition
+        self.intro_text = QLabel("Welcome to Linear Equations Solver!\n\n"
+                                 "Enter the number of variables and number\nof equations to begin:\n")
+
+        #Invalid Input Error Label Definition
+        self.var_eq_err = QLabel("Please enter a valid number")
+
+        #Coefficient Intro Text Definition
+        self.coeff_text = QLabel("Enter the coefficients of the equation:")
 
         #Variable Definitions
         self.n_eqs = None
@@ -174,6 +187,28 @@ class MainWindow(QMainWindow):
                                                             } """)
         self.header_h_layout.addWidget(self.close_btn)
         self.v_main_layout.addWidget(self.header)
+
+        #Intro Text
+        self.intro_text.setFont(QFont("Arial", 20))
+        self.intro_text.setStyleSheet("color: black;"
+                                      "font-weight: bold;")
+        self.general_v_layout.addWidget(self.intro_text)
+        self.intro_text.show()
+
+        #Invalid Input Error Text
+        self.var_eq_err.setFont(QFont("Arial", 20))
+        self.var_eq_err.setStyleSheet("color: red;"
+                                      "font-weight: bold;")
+        self.var_eq_err.setAlignment(Qt.AlignCenter)
+        self.general_v_layout.addWidget(self.var_eq_err)
+        self.var_eq_err.hide()
+
+        #Coefficient Intro Text
+        self.coeff_text.setFont(QFont("Arial", 20))
+        self.coeff_text.setStyleSheet("color: black;"
+                                      "font-weight: bold;")
+        self.general_v_layout.addWidget(self.coeff_text)
+        self.coeff_text.hide()
 
         #Input Line Edit Style Sheets and Visibility
         self.h_in_layout.addWidget(self.input_n)
@@ -295,39 +330,43 @@ class MainWindow(QMainWindow):
 
         #UI for Coefficient Input Window
 
-        self.submit_button.hide()                                                   #Adjust widget visibility
-        self.input_n.hide()
-        self.input_m.hide()
-        self.coeff_submit_button.show()
-
         self.n_vars = self.input_n.text()                                           #Extract text from line edits
         self.n_eqs = self.input_m.text()
 
         if not self.n_vars.isdigit() or not self.n_eqs.isdigit():                   #Check if text is valid
-            raise ValueError("Number of variables and equations must be numerical")
+            self.var_eq_err.show()
+        else:
+            self.var_eq_err.hide()
+            self.submit_button.hide()                                                   # Adjust widget visibility
+            self.input_n.hide()
+            self.input_m.hide()
+            self.coeff_submit_button.show()
+            self.intro_text.hide()
+            self.coeff_text.show()
 
-        self.n_vars = int(self.n_vars)                                              #Set text to int datatype
-        self.n_eqs = int(self.n_eqs)
+            self.n_vars = int(self.n_vars)                                              #Set text to int datatype
+            self.n_eqs = int(self.n_eqs)
 
-        self.coeff_boxes = []                                                       #Initialize coefficient widget storage
-        self.ans_boxes = []
+            self.coeff_boxes = []                                                       #Initialize coefficient widget storage
+            self.ans_boxes = []
 
-        for row in range(self.n_eqs):                                               #Coefficient widget logic
-            row_boxes = []
+            for row in range(self.n_eqs):                                               #Coefficient widget logic
+                row_boxes = []
 
-            for col in range(self.n_vars):
-                coeff_box = HintLineEdit(f"a{row*self.n_vars + col + 1}", self)
-                coeff_box.setStyleSheet("background-color: #FFFFFF;"
-                                        "border-color: black;")
-                self.coeff_layout.addWidget(coeff_box, row, col)
-                row_boxes.append(coeff_box)
+                for col in range(self.n_vars):
+                    coeff_box = HintLineEdit(f"a{row*self.n_vars + col + 1}", self)
+                    #Add x1, x2 etc logic.
+                    coeff_box.setStyleSheet("background-color: #FFFFFF;"
+                                            "border-color: black;")
+                    self.coeff_layout.addWidget(coeff_box, row, col)
+                    row_boxes.append(coeff_box)
 
-            ans_box = HintLineEdit(f"b{row + 1}", self)                        #RHS widget logic
-            ans_box.setStyleSheet("background-color: #FFFFFF;")
-            self.coeff_layout.addWidget(ans_box, row, self.n_vars + 1)
+                ans_box = HintLineEdit(f"b{row + 1}", self)                        #RHS widget logic
+                ans_box.setStyleSheet("background-color: #FFFFFF;")
+                self.coeff_layout.addWidget(ans_box, row, self.n_vars + 1)
 
-            self.coeff_boxes.append(row_boxes)
-            self.ans_boxes.append(ans_box)
+                self.coeff_boxes.append(row_boxes)
+                self.ans_boxes.append(ans_box)
 
     def solver(self):
 
@@ -362,6 +401,7 @@ class MainWindow(QMainWindow):
 
         self.clear_layout(self.coeff_layout)                                        #Clear screen for display
         self.coeff_submit_button.hide()
+        self.coeff_text.hide()
         self.reset_button.show()                                                    #Show reset button
 
         if cse:                                                                     #Shows no solution label
@@ -410,7 +450,12 @@ class MainWindow(QMainWindow):
         #Reset the UI
 
         self.clear_layout(self.coeff_layout)                                        #Clear dynamic layouts
-        self.clear_layout(self.general_v_layout)
+        for i in reversed(range(self.general_v_layout.count())):
+            widget = self.general_v_layout.itemAt(i).widget()
+            if widget not in (self.intro_text, self.var_eq_err):
+                widget.setParent(None)
+
+        self.intro_text.show()
 
         self.input_n.clear()                                                        #Reset inputs
         self.input_m.clear()
