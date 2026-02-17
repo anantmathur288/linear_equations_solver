@@ -97,9 +97,9 @@ class MainWindow(QMainWindow):
         self.button_layout = QVBoxLayout()                                          #Button Layouts
         self.h_in_layout = QHBoxLayout()                                            #Horizontal Input Line Edit Layout
         self.coeff_layout = QGridLayout()                                           #Coefficient Grid Layout
-        self.header_h_layout = QHBoxLayout(self.header)                             #Header Layout
-        self.header_h_layout.setContentsMargins(10, 0, 5, 0)
-        self.header_h_layout.setSpacing(5)
+        self.header_grid_h_layout = QHBoxLayout(self.header)                        #Header Layout
+        self.header_grid_h_layout.setContentsMargins(10, 0, 5, 0)
+        self.header_grid_h_layout.setSpacing(5)
 
         self.intro_text = QLabel
 
@@ -129,10 +129,15 @@ class MainWindow(QMainWindow):
         self.n_eqs = None
         self.n_vars = None
         self.coeff_boxes = None
+        self.variable_labels = None
+        self.equals_labels = None
+        self.plus_labels = None
         self.ans_boxes = None
         self.A_matrix = None
         self.B_matrix = None
         self.x = None
+
+        self.solution_widgets = []
 
         #Mouse Movement Variable Definitions
         self._drag_pos = None
@@ -162,9 +167,9 @@ class MainWindow(QMainWindow):
                                       "font-weight: bold;"
                                       "text-decoration: underline;")
         self.name_label.setAlignment(Qt.AlignCenter)
-        self.header_h_layout.addWidget(self.name_label)
-        self.header_h_layout.addStretch()
-        self.header_h_layout.addWidget(self.min_btn)
+        self.header_grid_h_layout.addWidget(self.name_label)
+        self.header_grid_h_layout.addStretch()
+        self.header_grid_h_layout.addWidget(self.min_btn)
         self.min_btn.setFixedSize(30, 28)
         self.min_btn.setFocusPolicy(Qt.NoFocus)
         self.min_btn.clicked.connect(self.showMinimized)
@@ -185,7 +190,7 @@ class MainWindow(QMainWindow):
                                                       }
                                          QPushButton:hover { background: #d32f2f;
                                                             } """)
-        self.header_h_layout.addWidget(self.close_btn)
+        self.header_grid_h_layout.addWidget(self.close_btn)
         self.v_main_layout.addWidget(self.header)
 
         #Intro Text
@@ -330,8 +335,8 @@ class MainWindow(QMainWindow):
 
         #UI for Coefficient Input Window
 
-        self.n_vars = self.input_n.text()                                           #Extract text from line edits
-        self.n_eqs = self.input_m.text()
+        self.n_eqs = self.input_n.text()                                           #Extract text from line edits
+        self.n_vars = self.input_m.text()
 
         if not self.n_vars.isdigit() or not self.n_eqs.isdigit():                   #Check if text is valid
             self.var_eq_err.show()
@@ -349,24 +354,60 @@ class MainWindow(QMainWindow):
 
             self.coeff_boxes = []                                                       #Initialize coefficient widget storage
             self.ans_boxes = []
+            self.variable_labels = []
+            self.equals_labels = []
+            self.plus_labels = []
 
             for row in range(self.n_eqs):                                               #Coefficient widget logic
                 row_boxes = []
 
                 for col in range(self.n_vars):
                     coeff_box = HintLineEdit(f"a{row*self.n_vars + col + 1}", self)
-                    #Add x1, x2 etc logic.
+                    variable_label = QLabel(f"x{col + 1}")
+                    plus_label = QLabel("+")
+
                     coeff_box.setStyleSheet("background-color: #FFFFFF;"
                                             "border-color: black;")
-                    self.coeff_layout.addWidget(coeff_box, row, col)
+                    variable_label.setStyleSheet("color : black;")
+                    plus_label.setStyleSheet("Color : black;")
+
+                    coeff_box.setFixedSize(100, 80)
+                    
+                    coeff_h_layout = QHBoxLayout()
+                    coeff_h_layout.setContentsMargins(0, 0, 0, 0)
+                    coeff_h_layout.setSpacing(2)
+                    
+                    if col != 0:
+                        coeff_h_layout.addWidget(plus_label)
+                        self.plus_labels.append(plus_label)
+                    coeff_h_layout.addWidget(coeff_box)
+                    coeff_h_layout.addWidget(variable_label)
+
+                    self.coeff_layout.addLayout(coeff_h_layout, row, col, alignment = Qt.AlignLeft)
+
                     row_boxes.append(coeff_box)
+                    self.variable_labels.append(variable_label)
 
                 ans_box = HintLineEdit(f"b{row + 1}", self)                        #RHS widget logic
                 ans_box.setStyleSheet("background-color: #FFFFFF;")
-                self.coeff_layout.addWidget(ans_box, row, self.n_vars + 1)
+
+                ans_box.setFixedSize(100, 80)
+
+                equals_label = QLabel("=")
+                equals_label.setStyleSheet("color : black;")
+
+                ans_h_layout = QHBoxLayout()
+                ans_h_layout.setContentsMargins(0, 0, 0, 0)
+                ans_h_layout.setSpacing(2)
+
+                ans_h_layout.addWidget(equals_label)
+                ans_h_layout.addWidget(ans_box)
+
+                self.coeff_layout.addLayout(ans_h_layout, row, self.n_vars + 1, alignment = Qt.AlignLeft)
 
                 self.coeff_boxes.append(row_boxes)
                 self.ans_boxes.append(ans_box)
+                self.equals_labels.append(equals_label)
 
     def solver(self):
 
@@ -399,37 +440,29 @@ class MainWindow(QMainWindow):
 
         #UI for Solution Display
 
-        self.clear_layout(self.coeff_layout)                                        #Clear screen for display
+        self.clear_layout(self.coeff_layout)
         self.coeff_submit_button.hide()
         self.coeff_text.hide()
-        self.reset_button.show()                                                    #Show reset button
+        self.reset_button.show()
 
-        if cse:                                                                     #Shows no solution label
-            error_label = QLabel(f"No solution exists for this system")
-            error_label.setFont(QFont("Arial", 20))
-            error_label.setStyleSheet("color: red;"
-                                           "font-weight: bold;")
-            error_label.setAlignment(Qt.AlignCenter)
-            self.general_v_layout.addWidget(error_label)
-        else:                                                                       #Displays solutions
+        if cse:
+            label = QLabel("No solution exists for this system")
+            label.setFont(QFont("Arial", 20))
+            label.setStyleSheet("color: red; font-weight: bold;")
+            label.setAlignment(Qt.AlignCenter)
+            self.general_v_layout.addWidget(label)
+            self.solution_widgets.append(label)
+        else:
             xp = QLabel(f"Particular solution xp = {self.x[0]}")
-            xn = QLabel(f"Nullspace basis is xn = {self.x[1]}")
-            x = QLabel(f"Complete solution is x = {self.x[0]} + c{self.x[1]}")
-            xp.setFont(QFont("Arial", 20))
-            xp.setStyleSheet("color: black;"
-                             "font-weight: bold;")
-            xn.setFont(QFont("Arial", 20))
-            xn.setStyleSheet("color: black;"
-                             "font-weight: bold;")
-            x.setFont(QFont("Arial", 20))
-            x.setStyleSheet("color: black;"
-                            "font-weight: bold;")
-            xp.setAlignment(Qt.AlignCenter)
-            xn.setAlignment(Qt.AlignCenter)
-            x.setAlignment(Qt.AlignCenter)
-            self.general_v_layout.addWidget(xp)
-            self.general_v_layout.addWidget(xn)
-            self.general_v_layout.addWidget(x)
+            xn = QLabel(f"Nullspace basis xn = {self.x[1]}")
+            x  = QLabel(f"Complete solution x = {self.x[0]} + c{self.x[1]}")
+
+            for lbl in (xp, xn, x):
+                lbl.setFont(QFont("Arial", 20))
+                lbl.setStyleSheet("color: black; font-weight: bold;")
+                lbl.setAlignment(Qt.AlignCenter)
+                self.general_v_layout.addWidget(lbl)
+                self.solution_widgets.append(lbl)
 
     def clear_layout(self, layout):
 
@@ -447,27 +480,30 @@ class MainWindow(QMainWindow):
 
     def resetUI(self):
 
-        #Reset the UI
+        self.clear_layout(self.coeff_layout)
 
-        self.clear_layout(self.coeff_layout)                                        #Clear dynamic layouts
-        for i in reversed(range(self.general_v_layout.count())):
-            widget = self.general_v_layout.itemAt(i).widget()
-            if widget not in (self.intro_text, self.var_eq_err):
-                widget.setParent(None)
+        for w in self.solution_widgets:
+            w.deleteLater()
+        self.solution_widgets.clear()
 
+        self.coeff_text.hide()
+        self.var_eq_err.hide()
         self.intro_text.show()
 
-        self.input_n.clear()                                                        #Reset inputs
+        self.input_n.clear()
         self.input_m.clear()
         self.input_n.show()
         self.input_m.show()
 
-        self.submit_button.show()                                                   #Reset visibility
+        self.submit_button.show()
         self.coeff_submit_button.hide()
         self.reset_button.hide()
 
-        self.coeff_boxes = []                                                       #Reset internal state
+        self.coeff_boxes = []
         self.ans_boxes = []
+        self.variable_labels = []
+        self.equals_labels = []
+        self.plus_labels = []
         self.n_eqs = None
         self.n_vars = None
 
