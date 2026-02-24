@@ -203,20 +203,17 @@ if __name__ == '__main__':
     #      [3, 56, 7, 8, 1, 3]]
 
     # B = [[1], [7], [6], [9], [2], [1]]
-    A = np.array([[1, 2, 3, 4],
-                  [2, 4, 7, 11],
-                  [3, 7, 14, 25],
-                  [4, 11, 25, 50]])
+    A = np.array([[1, 2, 2, 2],
+                  [2, 4, 6, 8],
+                  [3, 6, 8, 10]])
 
     # A = [[4, 3, 7],
     #      [12, 4, 5],
     #      [7, 8, 2]]
     #
-    # B = [[1], [5], [6]]
+    B = [[1], [5], [6]]
 
-    # o = LinearEquationSolver(A, B, True)
-    # s = o.solve()
+    o = LinearEquationSolver(A, B, True)
+    s = o.solve()
 
-    r = LinearEquationSolver(A, print_bool = True)._rref()
-
-    print(r)
+    print(s)
